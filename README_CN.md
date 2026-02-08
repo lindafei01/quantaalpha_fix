@@ -193,6 +193,18 @@ bash start.sh
 
 ---
 
+## 💬 用户社区
+
+<div align="center">
+
+| 微信群 |
+| :---: |
+| <img src="docs/images/WeChat.jpg" width="250" alt="微信群" /> |
+
+</div>
+
+---
+
 ## 🤝 参与贡献
 
 我们欢迎任何形式的贡献，让 QuantaAlpha 变得更好！以下是参与方式：
@@ -230,18 +242,6 @@ bash start.sh
 
 🔗 **团队主页**：[QuantaAlpha](https://quantaalpha.github.io/)
 📧 **邮箱**：quantaalpha.ai@gmail.com
-
----
-
-## 💬 用户社区
-
-<div align="center">
-
-| 微信群 |
-| :---: |
-| <img src="docs/images/wechat_qr.png" width="250" alt="微信群" /> |
-
-</div>
 
 ---
 

@@ -191,6 +191,18 @@ bash start.sh
 
 ---
 
+## 💬 User Community
+
+<div align="center">
+
+| WeChat Group |
+| :---: |
+| <img src="docs/images/WeChat.jpg" width="250" alt="WeChat Group" /> |
+
+</div>
+
+---
+
 ## 🤝 Contributing
 
 We welcome all forms of contributions to make QuantaAlpha better! Here's how you can get involved:
@@ -228,18 +240,6 @@ Special thanks to:
 
 🔗 **Team Homepage**: [QuantaAlpha](https://quantaalpha.github.io/)
 📧 **Email**: quantaalpha.ai@gmail.com
-
----
-
-## 💬 User Community
-
-<div align="center">
-
-| WeChat Group |
-| :---: |
-| <img src="docs/images/WeChat.jpg" width="250" alt="WeChat Group" /> |
-
-</div>
 
 ---
 
