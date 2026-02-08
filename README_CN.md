@@ -237,9 +237,9 @@ bash start.sh
 
 <div align="center">
 
-| 微信群 | Discord 频道 |
-| :---: | :---: |
-| <img src="docs/images/wechat_qr.png" width="250" alt="微信群" /> | [https://discord.gg/FfXtbREb](https://discord.gg/FfXtbREb) |
+| 微信群 |
+| :---: |
+| <img src="docs/images/wechat_qr.png" width="250" alt="微信群" /> |
 
 </div>
 

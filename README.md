@@ -235,9 +235,9 @@ Special thanks to:
 
 <div align="center">
 
-| WeChat Group | Discord Channel |
-| :---: | :---: |
-| <img src="docs/images/wechat_qr.png" width="250" alt="WeChat Group" /> | [https://discord.gg/FfXtbREb](https://discord.gg/FfXtbREb) |
+| WeChat Group |
+| :---: |
+| <img src="docs/images/WeChat.jpg" width="250" alt="WeChat Group" /> |
 
 </div>
 
