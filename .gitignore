@@ -90,7 +90,6 @@ all_factors_library*.json
 .ipynb_checkpoints/
 
 # ---- Node.js (frontend) ----
-frontend-v2/
 node_modules/
 npm-debug.log*
 yarn-debug.log*
