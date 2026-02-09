@@ -78,10 +78,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <span className="text-lg">💡</span> 使用须知
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-muted-foreground">
-              <div className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">&#9679;</span>
-                <span><strong className="text-foreground">系统要求：</strong>当前后端仅支持 <strong className="text-foreground">Linux</strong> 系统，Windows / macOS 支持将在未来版本提供</span>
-              </div>
+
               <div className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">&#9679;</span>
                 <span><strong className="text-foreground">默认市场：</strong>CSI 300（沪深300）市场股票数据</span>

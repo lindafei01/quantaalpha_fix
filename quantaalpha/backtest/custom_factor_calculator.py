@@ -325,14 +325,20 @@ class CustomFactorCalculator:
             return pd.DataFrame(results)
         return pd.DataFrame()
     
-    def calculate_factors_batch(self, factors: List[Dict], use_cache: bool = True) -> pd.DataFrame:
+    def calculate_factors_batch(self, factors: List[Dict], use_cache: bool = True,
+                                skip_compute: bool = False) -> pd.DataFrame:
         """
         批量计算因子
         
         优先级:
         1. cache_location 字段（直接从 result.h5 读取）
         2. MD5 缓存（factor_cache 目录）
-        3. 使用 factor_expression 重新计算
+        3. 使用 factor_expression 重新计算（skip_compute=True 时跳过此步）
+        
+        Args:
+            factors: 因子列表
+            use_cache: 是否使用缓存
+            skip_compute: 如果为 True，跳过缓存未命中的因子（不从表达式重新计算）
         """
         import time as _time
         
@@ -391,79 +397,86 @@ class CustomFactorCalculator:
         
         # === Pass 2: 从表达式计算未缓存的因子 ===
         if need_compute_factors:
-            print(f"  开始从表达式计算 {len(need_compute_factors)} 个因子...")
-            
-            for idx, (orig_i, factor_info) in enumerate(need_compute_factors):
-                factor_name = factor_info.get('factor_name', 'unknown')
-                factor_expr = factor_info.get('factor_expression', '')
+            if skip_compute:
+                skipped_count = len(need_compute_factors)
+                skipped_names = [f.get('factor_name', 'unknown') for _, f in need_compute_factors]
+                print(f"  跳过 {skipped_count} 个无缓存因子（skip_compute=True，仅使用已缓存因子回测）")
+                if skipped_names:
+                    print(f"  跳过因子: {', '.join(skipped_names)}")
+            else:
+                print(f"  开始从表达式计算 {len(need_compute_factors)} 个因子...")
                 
-                print(f"  计算 [{idx+1}/{len(need_compute_factors)}]: {factor_name} ...", end='', flush=True)
-                t0 = _time.time()
-                
-                try:
-                    # 超时保护：单个因子计算最多 120 秒
-                    import signal as _signal
+                for idx, (orig_i, factor_info) in enumerate(need_compute_factors):
+                    factor_name = factor_info.get('factor_name', 'unknown')
+                    factor_expr = factor_info.get('factor_expression', '')
                     
-                    class _FactorTimeout(Exception):
-                        pass
-                    
-                    def _timeout_handler(signum, frame):
-                        raise _FactorTimeout()
-                    
-                    old_handler = None
-                    try:
-                        old_handler = _signal.signal(_signal.SIGALRM, _timeout_handler)
-                        _signal.alarm(120)  # 120 秒超时
-                    except (AttributeError, ValueError):
-                        pass  # Windows 或非主线程不支持 SIGALRM
-                    
-                    result = self.calculate_factor(factor_name, factor_expr)
+                    print(f"  计算 [{idx+1}/{len(need_compute_factors)}]: {factor_name} ...", end='', flush=True)
+                    t0 = _time.time()
                     
                     try:
-                        _signal.alarm(0)  # 取消超时
-                        if old_handler is not None:
-                            _signal.signal(_signal.SIGALRM, old_handler)
-                    except (AttributeError, ValueError):
-                        pass
+                        # 超时保护：单个因子计算最多 120 秒
+                        import signal as _signal
+                        
+                        class _FactorTimeout(Exception):
+                            pass
+                        
+                        def _timeout_handler(signum, frame):
+                            raise _FactorTimeout()
+                        
+                        old_handler = None
+                        try:
+                            old_handler = _signal.signal(_signal.SIGALRM, _timeout_handler)
+                            _signal.alarm(120)  # 120 秒超时
+                        except (AttributeError, ValueError):
+                            pass  # Windows 或非主线程不支持 SIGALRM
+                        
+                        result = self.calculate_factor(factor_name, factor_expr)
+                        
+                        try:
+                            _signal.alarm(0)  # 取消超时
+                            if old_handler is not None:
+                                _signal.signal(_signal.SIGALRM, old_handler)
+                        except (AttributeError, ValueError):
+                            pass
+                        
+                    except _FactorTimeout:
+                        elapsed = _time.time() - t0
+                        print(f" ✗ 超时 ({elapsed:.1f}s)")
+                        fail_count += 1
+                        failed_names.append(f"{factor_name}(超时)")
+                        try:
+                            _signal.alarm(0)
+                            if old_handler is not None:
+                                _signal.signal(_signal.SIGALRM, old_handler)
+                        except (AttributeError, ValueError):
+                            pass
+                        continue
+                    except Exception as e:
+                        elapsed = _time.time() - t0
+                        print(f" ✗ 异常 ({elapsed:.1f}s): {str(e)[:80]}")
+                        fail_count += 1
+                        failed_names.append(factor_name)
+                        continue
                     
-                except _FactorTimeout:
                     elapsed = _time.time() - t0
-                    print(f" ✗ 超时 ({elapsed:.1f}s)")
-                    fail_count += 1
-                    failed_names.append(f"{factor_name}(超时)")
-                    try:
-                        _signal.alarm(0)
-                        if old_handler is not None:
-                            _signal.signal(_signal.SIGALRM, old_handler)
-                    except (AttributeError, ValueError):
-                        pass
-                    continue
-                except Exception as e:
-                    elapsed = _time.time() - t0
-                    print(f" ✗ 异常 ({elapsed:.1f}s): {str(e)[:80]}")
-                    fail_count += 1
-                    failed_names.append(factor_name)
-                    continue
-                
-                elapsed = _time.time() - t0
-                
-                if result is not None and len(result) > 0:
-                    if not result.isna().all():
-                        results[factor_name] = result
-                        success_count += 1
-                        compute_count += 1
-                        print(f" ✓ ({elapsed:.1f}s)")
-                        # 保存到 MD5 缓存
-                        if use_cache:
-                            self._save_to_cache(factor_expr, result)
+                    
+                    if result is not None and len(result) > 0:
+                        if not result.isna().all():
+                            results[factor_name] = result
+                            success_count += 1
+                            compute_count += 1
+                            print(f" ✓ ({elapsed:.1f}s)")
+                            # 保存到 MD5 缓存
+                            if use_cache:
+                                self._save_to_cache(factor_expr, result)
+                        else:
+                            fail_count += 1
+                            failed_names.append(factor_name)
+                            print(f" ✗ 全NaN ({elapsed:.1f}s)")
                     else:
                         fail_count += 1
                         failed_names.append(factor_name)
-                        print(f" ✗ 全NaN ({elapsed:.1f}s)")
-                else:
-                    fail_count += 1
-                    failed_names.append(factor_name)
-                    print(f" ✗ 失败 ({elapsed:.1f}s)")
+                        print(f" ✗ 失败 ({elapsed:.1f}s)")
         
         # 摘要
         print(f"因子加载完成: 成功 {success_count}, 失败 {fail_count} | "

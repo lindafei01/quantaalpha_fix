@@ -507,7 +507,24 @@ async def cancel_mining(task_id: str):
     task = tasks[task_id]
     if task.get("pid"):
         try:
-            os.kill(task["pid"], signal.SIGTERM)
+            pid = task["pid"]
+            # Try graceful termination first
+            os.kill(pid, signal.SIGTERM)
+            
+            # Wait briefly for cleanup (0.5s)
+            for _ in range(5):
+                try:
+                    os.kill(pid, 0) # Check if alive
+                    await asyncio.sleep(0.1)
+                except ProcessLookupError:
+                    break
+            
+            # Force kill if still running
+            try:
+                os.kill(pid, 0)
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
         except ProcessLookupError:
             pass
     task["status"] = "cancelled"
@@ -862,6 +879,7 @@ async def _run_backtest(task_id: str, req: BacktestStartRequest, config_path: st
             "-c", config_path,
             "--factor-source", req.factorSource,
             "--factor-json", factor_json_str,
+            "--skip-uncached",
             "-v",
         ]
 
@@ -1163,14 +1181,33 @@ def _update_mining_metrics(task: Dict[str, Any]):
     
     if suffix:
         candidate = PROJECT_ROOT / "data" / "factorlib" / f"all_factors_library_{suffix}.json"
+        # Fix: If suffix is specified, we ONLY look at this file.
+        # If it doesn't exist yet, it means no factors have been mined yet for this task.
         if candidate.exists():
             target_lib = str(candidate)
+        else:
+            # Task specific file not found -> assume empty state
+            return
             
-    if not target_lib and jsons:
+    elif jsons:
+        # No suffix provided, fallback to latest existing library (legacy behavior)
         target_lib = jsons[0]
         
     if not target_lib:
         return
+
+    # Check modification time
+    try:
+        mtime = os.path.getmtime(target_lib)
+        created_at_str = task.get("createdAt")
+        if created_at_str:
+            created_at_dt = datetime.fromisoformat(created_at_str)
+            # Add a small buffer (e.g. 1 second) to avoid race conditions where file is created immediately
+            if mtime < created_at_dt.timestamp():
+                # File is older than the task -> ignore it
+                return
+    except Exception:
+        pass
 
     try:
         lib = _load_factor_library(target_lib)

@@ -77,7 +77,8 @@ class BacktestRunner:
             factor_source: Optional[str] = None,
             factor_json: Optional[List[str]] = None,
             experiment_name: Optional[str] = None,
-            output_name: Optional[str] = None) -> Dict:
+            output_name: Optional[str] = None,
+            skip_uncached: bool = False) -> Dict:
         """
         执行完整回测流程
         
@@ -86,6 +87,7 @@ class BacktestRunner:
             factor_json: 自定义因子 JSON 文件路径列表 (覆盖配置文件)
             experiment_name: 实验名称 (覆盖配置文件)
             output_name: 输出文件名前缀 (可选，默认使用因子库文件名)
+            skip_uncached: 如果为 True，跳过缓存未命中的因子（不从表达式重新计算）
             
         Returns:
             Dict: 回测结果指标
@@ -121,7 +123,7 @@ class BacktestRunner:
         # 2. 计算自定义因子（如果有）
         computed_factors = None
         if custom_factors:
-            computed_factors = self._compute_custom_factors(custom_factors)
+            computed_factors = self._compute_custom_factors(custom_factors, skip_compute=skip_uncached)
             n_computed = len(computed_factors.columns) if computed_factors is not None and not computed_factors.empty else 0
             print(f"[2/4] 计算自定义因子: 成功 {n_computed} 个")
         else:
@@ -152,13 +154,17 @@ class BacktestRunner:
         loader = FactorLoader(self.config)
         return loader.load_factors()
     
-    def _compute_custom_factors(self, factors: List[Dict]) -> Optional[pd.DataFrame]:
+    def _compute_custom_factors(self, factors: List[Dict], skip_compute: bool = False) -> Optional[pd.DataFrame]:
         """
         计算自定义因子
         使用 AlphaAgent 的 expr_parser 和 function_lib
         支持从缓存加载预计算的因子值
         
         优化: 先尝试从缓存加载，只有需要从表达式计算时才加载股票数据
+        
+        Args:
+            factors: 因子列表
+            skip_compute: 如果为 True，跳过缓存未命中的因子
         """
         from .custom_factor_calculator import CustomFactorCalculator
         from pathlib import Path
@@ -182,7 +188,7 @@ class BacktestRunner:
         )
         
         # 计算因子 (会优先检查缓存，缓存不存在才加载数据并计算)
-        result_df = calculator.calculate_factors_batch(factors, use_cache=True)
+        result_df = calculator.calculate_factors_batch(factors, use_cache=True, skip_compute=skip_compute)
         
         # 验证结果
         if result_df is None:

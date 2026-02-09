@@ -107,6 +107,12 @@ def main():
         help='仅加载因子，不执行回测'
     )
     
+    parser.add_argument(
+        '--skip-uncached',
+        action='store_true',
+        help='跳过缓存未命中的因子，仅使用已缓存因子进行回测'
+    )
+    
     args = parser.parse_args()
     
     # 设置日志级别
@@ -167,7 +173,8 @@ def main():
             runner.run(
                 factor_source=args.factor_source,
                 factor_json=args.factor_json,
-                experiment_name=args.experiment
+                experiment_name=args.experiment,
+                skip_uncached=args.skip_uncached,
             )
             
     except KeyboardInterrupt:

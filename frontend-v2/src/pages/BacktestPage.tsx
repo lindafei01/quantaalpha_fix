@@ -295,7 +295,7 @@ export const BacktestPage: React.FC = () => {
               <p className="text-muted-foreground">
                 <strong className="text-foreground">custom</strong> 模式仅使用因子库中的自定义因子；
                 <strong className="text-foreground">combined</strong> 模式将自定义因子与 Alpha158(20) 基线因子组合使用。
-                主实验挖掘过程中，新因子会与 4 个基础因子（开盘收益率、成交量比率、振幅收益率、日收益率）组合后在验证集上初步回测。
+                回测仅使用已缓存的因子，未缓存因子将自动跳过。
               </p>
             </div>
           </div>
@@ -408,14 +408,14 @@ export const BacktestPage: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleWarmCache}
-                    disabled={warmingCache || isRunning || !cacheStatus || cacheStatus.need_compute === 0}
+                    disabled={warmingCache || isRunning || !cacheStatus}
                   >
                     {warmingCache ? (
                       <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                     ) : (
                       <RefreshCw className="h-3 w-3 mr-1" />
                     )}
-                    预热缓存
+                    同步缓存
                   </Button>
                 </div>
               </div>
@@ -427,24 +427,21 @@ export const BacktestPage: React.FC = () => {
               ) : cacheStatus ? (
                 <div className="space-y-2">
                   {/* Summary bar */}
-                  <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-3 text-xs flex-wrap">
                     <span className="text-muted-foreground">共 {cacheStatus.total} 个因子</span>
-                    {cacheStatus.h5_cached > 0 && (
+                    {(cacheStatus.h5_cached + cacheStatus.md5_cached) > 0 && (
                       <span className="flex items-center gap-1 text-green-500">
                         <CheckCircle2 className="h-3 w-3" />
-                        HDF5 缓存: {cacheStatus.h5_cached}
-                      </span>
-                    )}
-                    {cacheStatus.md5_cached > 0 && (
-                      <span className="flex items-center gap-1 text-blue-500">
-                        <CheckCircle2 className="h-3 w-3" />
-                        MD5 缓存: {cacheStatus.md5_cached}
+                        已缓存: {cacheStatus.h5_cached + cacheStatus.md5_cached}
+                        <span className="text-muted-foreground font-normal">
+                          (HDF5 {cacheStatus.h5_cached} + MD5 {cacheStatus.md5_cached})
+                        </span>
                       </span>
                     )}
                     {cacheStatus.need_compute > 0 && (
-                      <span className="flex items-center gap-1 text-yellow-500">
+                      <span className="flex items-center gap-1 text-muted-foreground/70">
                         <AlertCircle className="h-3 w-3" />
-                        需重算: {cacheStatus.need_compute}
+                        未缓存: {cacheStatus.need_compute}（将跳过）
                       </span>
                     )}
                   </div>
@@ -463,9 +460,9 @@ export const BacktestPage: React.FC = () => {
                           title={`MD5 缓存: ${cacheStatus.md5_cached}`}
                         />
                         <div
-                          className="h-full bg-yellow-500/50 transition-all"
+                          className="h-full bg-muted-foreground/20 transition-all"
                           style={{ width: `${(cacheStatus.need_compute / cacheStatus.total) * 100}%` }}
-                          title={`需重算: ${cacheStatus.need_compute}`}
+                          title={`未缓存（跳过）: ${cacheStatus.need_compute}`}
                         />
                       </>
                     )}
@@ -473,7 +470,7 @@ export const BacktestPage: React.FC = () => {
                   <p className="text-xs text-muted-foreground">
                     {cacheStatus.need_compute === 0
                       ? '所有因子已缓存，回测将快速执行'
-                      : `${cacheStatus.need_compute} 个因子无缓存，回测时将从表达式重新计算（首次较慢，计算后自动缓存）`}
+                      : `将使用 ${cacheStatus.h5_cached + cacheStatus.md5_cached} 个已缓存因子进行回测，${cacheStatus.need_compute} 个未缓存因子已自动跳过`}
                   </p>
                 </div>
               ) : null}
