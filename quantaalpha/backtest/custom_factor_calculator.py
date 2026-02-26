@@ -453,11 +453,12 @@ class CustomFactorCalculator:
         
         # Align results to common index
         aligned_results = {}
-        reference_index = None
+        try:
+            reference_index = self.data_df.index
+        except Exception:
+            reference_index = None
         
         for name, series in results.items():
-            if reference_index is None:
-                reference_index = series.index
             validated = self._validate_and_align_result(series, name, reference_index)
             if validated is not None:
                 aligned_results[name] = validated
@@ -469,6 +470,27 @@ class CustomFactorCalculator:
         
         return pd.DataFrame()
     
+    def _normalize_index(self, index: pd.Index) -> pd.Index:
+        """Standardize MultiIndex to (datetime, instrument)."""
+        if not isinstance(index, pd.MultiIndex):
+            return index
+        
+        names = list(index.names)
+        new_names = list(names)
+        for i, name in enumerate(names):
+            if name in ['datetime', 'date', 'time']:
+                new_names[i] = 'datetime'
+            elif name in ['instrument', 'stock', 'code']:
+                new_names[i] = 'instrument'
+        
+        if new_names != names:
+            index = index.set_names(new_names)
+        
+        if index.names == ['instrument', 'datetime']:
+            index = index.swaplevel()
+        
+        return index
+
     def _validate_and_align_result(self, result: pd.Series, factor_name: str, 
                                     reference_index: Optional[pd.Index] = None) -> Optional[pd.Series]:
         """Validate and align cached result index."""
@@ -481,6 +503,10 @@ class CustomFactorCalculator:
                 target_idx = self.data_df.index
             except Exception:
                 return result if len(result) > 0 and not result.isna().all() else None
+        
+        # Normalize both indices
+        result.index = self._normalize_index(result.index)
+        target_idx = self._normalize_index(target_idx)
         
         # Align index (duplicate-safe)
         if not result.index.equals(target_idx):

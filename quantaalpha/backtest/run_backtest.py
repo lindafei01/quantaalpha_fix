@@ -52,8 +52,8 @@ Examples:
     parser.add_argument('-e', '--experiment', type=str, default=None, help='Experiment name (overrides config)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose logging')
     parser.add_argument('--dry-run', action='store_true', help='Load factors only, no backtest')
-    parser.add_argument('--skip-uncached', action='store_true',
-                        help='Skip uncached factors; use only cached factors for backtest')
+    parser.add_argument('--compute-uncached', action='store_true',
+                        help='Compute uncached factors (default: skip)')
     
     args = parser.parse_args()
     
@@ -100,7 +100,7 @@ Examples:
                 factor_source=args.factor_source,
                 factor_json=args.factor_json,
                 experiment_name=args.experiment,
-                skip_uncached=args.skip_uncached,
+                skip_uncached=not args.compute_uncached,
             )
             
     except KeyboardInterrupt:

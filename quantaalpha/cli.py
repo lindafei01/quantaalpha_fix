@@ -4,7 +4,6 @@ QuantaAlpha CLI entry.
 Commands:
   quantaalpha mine       - run factor mining
   quantaalpha backtest   - run backtest
-  quantaalpha ui         - start log Web UI
   quantaalpha health_check - environment health check
 """
 

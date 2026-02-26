@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "total": 6,
+    "success": 6,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "factor_id": "5de14091804fc96d",
+      "factor_name": "Stable_Regime_Indicator",
+      "success": true,
+      "IC": -0.011524486859364054,
+      "ICIR": -0.10377228323873085,
+      "Rank IC": -0.01755575222423781,
+      "Rank ICIR": -0.14473451952020905,
+      "n_days": 966
+    },
+    {
+      "factor_id": "b1bc72798f012ffb",
+      "factor_name": "RSQR10_VSTD5_Interaction",
+      "success": true,
+      "IC": -0.0036821981064901195,
+      "ICIR": -0.048212183094751795,
+      "Rank IC": -0.026532588678967548,
+      "Rank ICIR": -0.19368403704070256,
+      "n_days": 966
+    },
+    {
+      "factor_id": "82a2bf8c4313e6d8",
+      "factor_name": "Normalized_Low_Price_Deviation_20D",
+      "success": true,
+      "IC": 0.0022866922407727428,
+      "ICIR": 0.012863835818122182,
+      "Rank IC": -0.007926464039753413,
+      "Rank ICIR": -0.039848377179618144,
+      "n_days": 966
+    },
+    {
+      "factor_id": "1838bde71b154276",
+      "factor_name": "Composite_Volatility_Precursor_20D",
+      "success": true,
+      "IC": 0.002266442207354131,
+      "ICIR": 0.012972136911341579,
+      "Rank IC": -0.007325971653027269,
+      "Rank ICIR": -0.03690322264415327,
+      "n_days": 966
+    },
+    {
+      "factor_id": "380745a26d937274",
+      "factor_name": "Volume_Stabilized_RSQR",
+      "success": true,
+      "IC": -0.007797920732964271,
+      "ICIR": -0.07306391193391856,
+      "Rank IC": -0.007973239640211589,
+      "Rank ICIR": -0.06872482725098515,
+      "n_days": 966
+    },
+    {
+      "factor_id": "319ce8a919411670",
+      "factor_name": "Normalized_Intraday_Range_20D",
+      "success": true,
+      "IC": 9.554684354355426e-05,
+      "ICIR": 0.0008419803991607478,
+      "Rank IC": -0.0030493861668221926,
+      "Rank ICIR": -0.022801313199839017,
+      "n_days": 966
+    }
+  ]
+}

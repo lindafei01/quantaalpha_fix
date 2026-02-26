@@ -711,6 +711,8 @@ class BacktestRunner:
             "metrics": metrics,
             "config": {
                 "data_range": f"{self.config['data']['start_time']} ~ {self.config['data']['end_time']}",
+                "train_range": f"{self.config['dataset']['segments']['train'][0]} ~ {self.config['dataset']['segments']['train'][1]}",
+                "valid_range": f"{self.config['dataset']['segments']['valid'][0]} ~ {self.config['dataset']['segments']['valid'][1]}",
                 "test_range": f"{self.config['dataset']['segments']['test'][0]} ~ {self.config['dataset']['segments']['test'][1]}",
                 "backtest_range": f"{self.config['backtest']['backtest']['start_time']} ~ {self.config['backtest']['backtest']['end_time']}",
                 "market": self.config['data']['market'],
